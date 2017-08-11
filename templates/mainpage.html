@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Main Page
+{% endblock %}
+
+{% block page_content %}
+    <h1>Hey,
+        <U>
+            Stranger
+            </U>.
+                <br>
+                This is a hello world!
+    </h1>
+    <p>Your Ip Address is <U>{{ ipaddr }}</U>.</p>
+    <p>Your location is <U>{{ ipinfo }}</U>.</p>
+    <p>Localtime is <u>{{ moment(current_time).format('LLL') }}</u>.</p>
+    <p>That was <u>{{ moment(current_time).fromNow(refresh=True) }}</u></p>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ moment.include_moment() }}
+{% endblock %}
