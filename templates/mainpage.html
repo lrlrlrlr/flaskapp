@@ -1,13 +1,19 @@
 {% extends "base.html" %}
-
+{% import "bootstrap/wtf.html" as wtf %}
 {% block title %}
     Main Page
 {% endblock %}
 
 {% block page_content %}
+{#TODO    如果有名字了，就隐藏form，但是我想设一个按钮能显示form怎么弄？#}
+    {% if not name %}{{ wtf.quick_form(form) }}{% endif %}
     <h1>Hey,
         <U>
+            {% if name %}
+            {{ name }}
+            {% else %}
             Stranger
+            {% endif %}
             </U>.
                 <br>
                 This is a hello world!

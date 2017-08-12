@@ -3,25 +3,33 @@
 {% block title %}
     Index Page
 {% endblock %}
+{% block content %}
+    <div class="container">
+        {% for message in get_flashed_messages() %}
+            <div class="alert alert-warning">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                {{ message }}
+            </div>
+        {% endfor %}
+        {% block page_content %}
+            <p>{{ wtf.quick_form(form) }}</p>
+            <h1>Hey,
+                <U>
+                    {% if name %}
+                        {{ name }}
+                    {% else %}
+                        Stranger
+                    {% endif %}
+                </U>.
+            </h1>
+            <p>Your Ip Address is <U>{{ ipaddr }}</U>.</p>
+            <p>Your location is <U>{{ ipinfo }}</U>.</p>
+            <p>Localtime is <u>{{ moment(current_time).format('LLL') }}</u>.</p>
+            <p>That was <u>{{ moment(current_time).fromNow(refresh=True) }}</u></p>
 
-{% block page_content %}
-    <p>{{ wtf.quick_form(form) }}</p>
-    <h1>Hey,
-        <U>
-            {% if name %}
-                {{ name|capitalize }}
-            {% else %}
-                Stranger
-            {% endif %}
-        </U>.
-    </h1>
-    <p>Your Ip Address is <U>{{ ipaddr }}</U>.</p>
-    <p>Your location is <U>{{ ipinfo }}</U>.</p>
-    <p>Localtime is <u>{{ moment(current_time).format('LLL') }}</u>.</p>
-    <p>That was <u>{{ moment(current_time).fromNow(refresh=True) }}</u></p>
-
+        {% endblock %}
+    </div>
 {% endblock %}
-
 {% block scripts %}
     {{ super() }}
     {{ moment.include_moment() }}
