@@ -1,4 +1,4 @@
-from ..locate_ip_addr import check_ip_location
+from ..locate_ip_addr import check_ip_location,check_my_ip
 from ..models import Mylog
 
 from datetime import datetime
@@ -42,6 +42,24 @@ def index():
 
     return render_template(
         'index.html',
+        form=form,
+        name=session.get('name'),
+        ipaddr=ipaddr,
+        ipinfo=ipinfo,
+        current_time=datetime.utcnow())
+
+@main.route('/mainpage')
+def mainpage():
+    if session.get('name')=='ZL':
+        return redirect('ftp://zl:12345@%s:21/'%check_my_ip() )
+    form=NameForm()
+    if form.validate_on_submit():
+        session['name']=form.name.data
+        return redirect(url_for('.mainpage'),302)
+    ipaddr=request.remote_addr
+    ipinfo=check_ip_location(ipaddr)
+    return render_template(
+        'mainpage.html',
         form=form,
         name=session.get('name'),
         ipaddr=ipaddr,
