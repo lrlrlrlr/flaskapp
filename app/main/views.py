@@ -44,7 +44,7 @@ def index():  # 首页用来测试新技术
             user=User(username=str(form.name.data))
             db.session.add(user)
             #sendmail if it's a new username(not in database)!
-            send_mail(current_app.config['FLASK_ADMIN'],'New User','mail/new_user',
+            send_mail(current_app.config['FLASKY_ADMIN'],'New User','mail/new_user',
                       user=user)#todo 这第一个参数要改成类似app.config['FLASKY_ADMIN']
             # FUNCTION flash
         if form.name.data!=session.get('name'):
