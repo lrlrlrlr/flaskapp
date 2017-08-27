@@ -20,7 +20,7 @@ def make_shell_context():
     return dict(app=app,db=db,User=User,Role=Role,Mylog=Mylog)
 
 
-manager.add_command('shell',Shell(make_shell_context))
+manager.add_command('shell',Shell(make_context=make_shell_context))
 
 #导入db命令
 manager.add_command('db',MigrateCommand)
