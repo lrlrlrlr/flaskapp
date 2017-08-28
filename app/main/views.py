@@ -10,6 +10,7 @@ from ..email import send_mail
 from ..locate_ip_addr import check_ip_location
 from ..models import Mylog,User
 
+from flask_login import login_required
 
 # @main.route('/',methods=['GET','POST'])
 # def index():
@@ -45,7 +46,7 @@ def index():  # 首页用来测试新技术
             db.session.add(user)
             #sendmail if it's a new username(not in database)!
             send_mail(current_app.config['FLASKY_ADMIN'],'New User','mail/new_user',
-                      user=user)#todo 这第一个参数要改成类似app.config['FLASKY_ADMIN']
+                      user=user)
             # FUNCTION flash
         if form.name.data!=session.get('name'):
             flash('It seems you have changed your name!')
@@ -60,7 +61,7 @@ def index():  # 首页用来测试新技术
 
     #
     # @main.route('/mainpage',methods=['GET','POST'])
-    # def mainpage():  # 这个用来做积累页面
+    # def mainpage():
     #     if session.get('name')=='ZL':
     #         return redirect('/ftp')
     #     form=NameForm()
@@ -97,3 +98,9 @@ def welcome():
     msg.html='这是一封测试邮件 htmler'
     mail.send(msg)
     return 'Hello world!'
+
+
+@main.route('/secret')
+@login_required
+def secret():
+    return 'Only authenticated users are allowed!'
