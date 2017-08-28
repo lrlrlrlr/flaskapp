@@ -1,9 +1,9 @@
 {% extends "bootstrap/base.html" %}
 {% block head %}
-{{ super() }}
-<link rel="shortcut icon" href="{{ url_for('static',filename='favicon.ico') }}" type="image/x-icon">
-<link rel="icon" href="{{ url_for('static',filename='favicon.ico') }}" type="image/x-icon">
-{#    为啥要两个link?#}
+    {{ super() }}
+    <link rel="shortcut icon" href="{{ url_for('static',filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static',filename='favicon.ico') }}" type="image/x-icon">
+    {#    为啥要两个link?#}
 {% endblock %}
 {% block title %}LR's{% endblock %}
 
@@ -24,6 +24,13 @@
 
                 <ul class="nav navbar-nav">
                     <li><a href="http://112.96.28.145/woshow/home">WO+平台</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('auth.login') }}">Sign In</a></li>
+                    {% endif %}
                 </ul>
 
             </div>
