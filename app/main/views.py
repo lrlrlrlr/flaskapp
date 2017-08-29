@@ -12,18 +12,6 @@ from ..models import Mylog,User
 
 from flask_login import login_required
 
-# @main.route('/',methods=['GET','POST'])
-# def index():
-#     form=NameForm()
-#     if form.validate_on_submit():
-#         # ...
-#         session['name']=form.name.data
-#         return redirect(url_for('.index'))
-#     return render_template('index.html',
-#                            form=form,name=session.get('name'),
-#                            known=session.get('known',False),
-#                            current_time=datetime.datetime.utcnow())
-
 @main.route('/mainpage',methods=['GET','POST'])
 def mainpage():
     # FUNCTION ipaddress and ipinfo Save to MYSQLDATABASE
@@ -59,39 +47,12 @@ def mainpage():
                            current_time=datetime.datetime.utcnow())
 
 
-#todo 这下面还要改~~~~~~~~~~~~~
 @main.route('/',methods=['GET','POST'])
 def index():  # 首页用来测试新技术
+    ipaddr=request.remote_addr
+    ipinfo=check_ip_location(ipaddr)
+    db.session.add(Mylog(time=datetime.datetime.now(),ipaddr=ipaddr,ipinfo=ipinfo))
     return render_template('index.html')
-
-    #
-    # @main.route('/mainpage',methods=['GET','POST'])
-    # def mainpage():
-    #     if session.get('name')=='ZL':
-    #         return redirect('/ftp')
-    #     form=NameForm()
-    #     if form.validate_on_submit():
-    #         session['name']=form.name.data
-    #         return redirect(url_for('.mainpage'),302)
-    #     ipaddr=request.remote_addr
-    #     ipinfo=check_ip_location(ipaddr)
-    #     return render_template(
-    #         'mainpage.html',
-    #         form=form,
-    #         name=session.get('name'),
-    #         ipaddr=ipaddr,
-    #         ipinfo=ipinfo,
-    #         current_time=datetime.datetime.utcnow())
-    #
-    #
-    # @main.route('/ftp')
-    # def ftp():
-    #     if session.get('name')=='ZL':
-    #         ipaddr=check_my_ip()
-    #         return redirect('ftp://zl:12345@%s:21/'%ipaddr)
-    #     else:
-    #         return render_template('500.html')
-    #
 
 
 @main.route('/testmail')
