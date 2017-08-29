@@ -12,25 +12,18 @@
             </div>
         {% endfor %}
         {% block page_content %}
-            <p>{{ wtf.quick_form(form) }}</p>
             <h1>Hey,
                 <U>
-                    {% if name %}
-                        {{ name }}
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.username }}
                     {% else %}
                         Stranger
                     {% endif %}
                 </U>.
             </h1>
-            <p>Your Ip Address is <U>{{ ipaddr }}</U>.</p>
-            <p>Your location is <U>{{ ipinfo }}</U>.</p>
-            <p>Localtime is <u>{{ moment(current_time).format('LLL') }}</u>.</p>
-            <p>That was <u>{{ moment(current_time).fromNow(refresh=True) }}</u></p>
-
         {% endblock %}
     </div>
 {% endblock %}
 {% block scripts %}
     {{ super() }}
-    {{ moment.include_moment() }}
 {% endblock %}

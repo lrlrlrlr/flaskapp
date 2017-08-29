@@ -24,9 +24,8 @@ from flask_login import login_required
 #                            known=session.get('known',False),
 #                            current_time=datetime.datetime.utcnow())
 
-#todo 这下面还要改~~~~~~~~~~~~~
-@main.route('/',methods=['GET','POST'])
-def index():  # 首页用来测试新技术
+@main.route('/mainpage',methods=['GET','POST'])
+def mainpage():
     # FUNCTION ipaddress and ipinfo Save to MYSQLDATABASE
     ipaddr=request.remote_addr
     ipinfo=check_ip_location(ipaddr)
@@ -55,9 +54,15 @@ def index():  # 首页用来测试新技术
             form.name.data=''
 
             # redirect to avoid pop_up_window when refresh this page
-            return redirect(url_for('.index'),302)
-    return render_template('index.html',form=form,name=session.get('name'),ipaddr=ipaddr,ipinfo=ipinfo,
+            return redirect(url_for('.mainpage'),302)
+    return render_template('mainpage.html',form=form,name=session.get('name'),ipaddr=ipaddr,ipinfo=ipinfo,
                            current_time=datetime.datetime.utcnow())
+
+
+#todo 这下面还要改~~~~~~~~~~~~~
+@main.route('/',methods=['GET','POST'])
+def index():  # 首页用来测试新技术
+    return render_template('index.html')
 
     #
     # @main.route('/mainpage',methods=['GET','POST'])

@@ -1,29 +1,35 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 {% block title %}
-    Main Page
+    Index Page
 {% endblock %}
+{% block content %}
+    <div class="container">
+        {% for message in get_flashed_messages() %}
+            <div class="alert alert-warning">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                {{ message }}
+            </div>
+        {% endfor %}
+        {% block page_content %}
+            <p>{{ wtf.quick_form(form) }}</p>
+            <h1>Hey,
+                <U>
+                    {% if name %}
+                        {{ name }}
+                    {% else %}
+                        Stranger
+                    {% endif %}
+                </U>.
+            </h1>
+            <p>Your Ip Address is <U>{{ ipaddr }}</U>.</p>
+            <p>Your location is <U>{{ ipinfo }}</U>.</p>
+            <p>Localtime is <u>{{ moment(current_time).format('LLL') }}</u>.</p>
+            <p>That was <u>{{ moment(current_time).fromNow(refresh=True) }}</u></p>
 
-{% block page_content %}
-    {#TODO    如果有名字了，就隐藏form，但是我想设一个按钮能显示form怎么弄？#}
-    {% if not name %}{{ wtf.quick_form(form) }}{% endif %}
-    <h1>Hey,
-        <U>
-            {% if name %}
-                {{ name }}
-            {% else %}
-                Stranger
-            {% endif %}
-        </U>.
-        <br>
-        This is a hello world!
-    </h1>
-    <p>Your Ip Address is <U>{{ ipaddr }}</U>.</p>
-    <p>Your location is <U>{{ ipinfo }}</U>.</p>
-    <p>Localtime is <u>{{ moment(current_time).format('LLL') }}</u>.</p>
-    <p>That was <u>{{ moment(current_time).fromNow(refresh=True) }}</u></p>
+        {% endblock %}
+    </div>
 {% endblock %}
-
 {% block scripts %}
     {{ super() }}
     {{ moment.include_moment() }}
