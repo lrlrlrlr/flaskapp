@@ -26,7 +26,7 @@ class User(UserMixin,db.Model):
     username = db.Column(db.String(64), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     role_id=db.Column(db.Integer,db.ForeignKey('roles.id'))
-    comfirmed=db.Column(db.Boolean,default=False)
+    confirmed=db.Column(db.Boolean,default=False)
 
     @property
     def password(self):
@@ -57,7 +57,7 @@ class User(UserMixin,db.Model):
             return False
         if data.get('confirm')!=self.id:
             return False
-        self.comfirmed=True
+        self.confirmed=True
         db.session.add(self)
         return True
 
