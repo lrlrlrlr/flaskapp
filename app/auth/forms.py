@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField,PasswordField,BooleanField,SubmitField
 from wtforms import ValidationError
 from wtforms.validators import DataRequired,Length,Email,Regexp,EqualTo
-
+from flask_login import current_user
 from ..models import User
 
 '''
@@ -42,3 +42,17 @@ class RegisterForm(FlaskForm):
         '''自定义验证函数,确保username不重复'''
         if User.query.filter_by(username=field.data).first():
             raise ValidationError('Username already in use.')
+
+
+class ChangePasswordForm(FlaskForm):
+    '''改密码表单'''
+    old_password=PasswordField('Your Old Password',validators=[DataRequired()])
+    newpassword=PasswordField('Input Your New Password',
+                              validators=[DataRequired(),EqualTo('newpassword2',message='Passwords must match.')])
+    newpassword2=PasswordField('Confirm Your New Password',validators=[DataRequired()])
+    submit=SubmitField('Update Password')
+    #
+    # def validate_old_password(self,field):
+    #     '''验证旧密码'''
+    #     if current_user.verify_password(field.data) is False:
+    #         raise ValidationError('Old password invalid.')
