@@ -4,7 +4,7 @@ from flask_login import current_user,login_required
 from flask_login import login_user,logout_user
 
 from . import auth
-from .forms import LoginForm,RegisterForm,ChangePasswordForm
+from .forms import LoginForm,RegisterForm,ChangePasswordForm,ResetPasswordRequestForm,ResetPasswordForm
 from .. import db
 from ..email import send_mail
 from ..models import User
@@ -89,8 +89,48 @@ def change_password():
         if current_user.verify_password(form.old_password.data):
             current_user.password=form.newpassword.data
             flash('Your password has been updated!')
-            redirect(url_for('main.index'))
+            return redirect(url_for('main.index'))
         else:
             flash('Invalid password! Please check!')
 
     return render_template('auth/changepassword.html',form=form)
+
+
+@auth.route('/reset',methods=['GET','POST'])
+def password_reset_request():
+    '''请求重设密码界面'''
+    if not current_user.is_anonymous:
+        return redirect(url_for('main.index'))
+    form=ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user=User.query.filter_by(email=form.email.data).first()
+        if user:
+            token=user.generate_reset_token()
+            send_mail(form.email.data,'Reset your account','auth/email/reset_password',user=user,token=token,
+                      next=request.args.get('next'))
+            flash('An email with instructions to reset your password has been sent to you.')
+            return redirect(url_for('auth.login'))
+        else:
+            flash('Invalid email!')
+    return render_template('auth/reset.html',form=form)
+
+
+@auth.route('/reset/<token>',methods=['GET','POST'])
+def password_reset(token):
+    '''重设密码'''
+    if not current_user.is_anonymous:
+        return redirect(url_for('main.index'))
+
+    form=ResetPasswordForm()
+    if form.validate_on_submit():
+        user=User.query.filter_by(email=form.email.data).first()
+        if user is None:
+            flash('Invalid email!')
+            return redirect(url_for('main.index'))
+        if user.reset_password(token=token,new_password=form.new_password.data):
+            flash('Your password has been reset!')
+            return redirect(url_for('auth.login'))
+        else:
+            flash('Certification has been expired!')
+            return redirect(url_for('main.index'))
+    return render_template('auth/reset_password.html',form=form)
