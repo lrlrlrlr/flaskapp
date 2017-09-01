@@ -4,7 +4,8 @@ from flask_login import current_user,login_required
 from flask_login import login_user,logout_user
 
 from . import auth
-from .forms import LoginForm,RegisterForm,ChangePasswordForm,ResetPasswordRequestForm,ResetPasswordForm
+from .forms import LoginForm,RegisterForm,ChangePasswordForm,ResetPasswordRequestForm,ResetPasswordForm,\
+    ChangeEmailRequestForm
 from .. import db
 from ..email import send_mail
 from ..models import User
@@ -134,3 +135,30 @@ def password_reset(token):
             flash('Certification has been expired!')
             return redirect(url_for('main.index'))
     return render_template('auth/reset_password.html',form=form)
+
+
+@auth.route('/change-email',methods=['GET','POST'])
+@login_required
+def change_email_request():
+    '''请求重设邮箱'''
+    form=ChangeEmailRequestForm()
+
+    if form.validate_on_submit():
+        token=current_user.generate_email_change_token(form.new_email.data)
+        send_mail(form.new_email.data,'Change Email','auth/email/change_email',user=current_user.username,token=token)
+        flash('A email has been sent to your new email address!')
+        return redirect(url_for('main.index'))
+
+    return render_template('auth/change_email.html',form=form)
+
+
+@auth.route('/change-email/<token>')
+@login_required
+def change_email(token):
+    '''重设邮箱'''
+    if current_user.change_email(token):
+        flash('Your email has been changed!')
+        return redirect(url_for('main.index'))
+    else:
+        flash('Fail to change your email address, please retry.')
+        return redirect(url_for('main.index'))

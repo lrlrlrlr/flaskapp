@@ -1,30 +1,30 @@
-from . import db
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
-from . import login_manager
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app
+from flask_login import UserMixin
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from werkzeug.security import generate_password_hash,check_password_hash
 
+from . import db
+from . import login_manager
 
 
 class Role(db.Model):
-    __tablename__ = 'roles'
+    __tablename__='roles'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
-    user = db.relationship('User', backref='role', lazy='dynamic')
+    id=db.Column(db.Integer,primary_key=True)
+    name=db.Column(db.String(64),unique=True)
+    user=db.relationship('User',backref='role',lazy='dynamic')
 
     def __repr__(self):
-        return '<Role %r>' % self.name
+        return '<Role %r>'%self.name
 
 
 class User(UserMixin,db.Model):
     #todo 下面db.Interger如果改成db.INTERGER还是一样的吗?
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
+    __tablename__='users'
+    id=db.Column(db.Integer,primary_key=True)
     email=db.Column(db.String(64),unique=True,index=True)
-    username = db.Column(db.String(64), unique=True, index=True)
-    password_hash = db.Column(db.String(128))
+    username=db.Column(db.String(64),unique=True,index=True)
+    password_hash=db.Column(db.String(128))
     role_id=db.Column(db.Integer,db.ForeignKey('roles.id'))
     confirmed=db.Column(db.Boolean,default=False)
 
@@ -34,19 +34,19 @@ class User(UserMixin,db.Model):
         raise AttributeError('password is not a readabel attribute.')
 
     @password.setter
-    def password(self, password):
+    def password(self,password):
         '''生成哈希密码'''
-        self.password_hash = generate_password_hash(password)
+        self.password_hash=generate_password_hash(password)
 
-    def verify_password(self, password):
+    def verify_password(self,password):
         '''验证哈希密码'''
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.password_hash,password)
 
     def generate_confirmation_token(self,expiration=3600):
         '''生成确认token'''
         s=Serializer(current_app.config['SECRET_KEY'],expiration)
         return s.dumps({
-                           'confirm':self.id})
+            'confirm':self.id})
 
     def confirm(self,token):
         '''校验确认token'''
@@ -65,7 +65,7 @@ class User(UserMixin,db.Model):
         '''生成重置密码token'''
         s=Serializer(current_app.config['SECRET_KEY'],expiration)
         return s.dumps({
-                           'reset':self.id})
+            'reset':self.id})
 
     def reset_password(self,token,new_password):
         '''校验重置密码token'''
@@ -80,19 +80,39 @@ class User(UserMixin,db.Model):
         db.session.add(self)
         return True
 
+    def generate_email_change_token(self,new_email,expiration=3600):
+        '''生成重置邮箱token'''
+        s=Serializer(current_app.config['SECRET_KEY'],expiration)
+        return s.dumps({
+            'change_email':self.id,
+            'new_email':new_email})
 
-
+    def change_email(self,token):
+        '''校验重置邮箱token'''
+        s=Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data=s.loads(token)
+        except:
+            return False
+        new_email=data.get('change_email')
+        if new_email is None:
+            return False
+        if self.query.filter_by(email=new_email).first() is not None:
+            return False
+        self.email=new_email
+        db.session.add(self)
+        return True
 
 
 class Mylog(db.Model):
-    __tablename__ = 'mylog'
-    id = db.Column(db.Integer, primary_key=True)
-    time = db.Column(db.DateTime)
-    ipaddr = db.Column(db.String(64))
-    ipinfo = db.Column(db.String(64))
+    __tablename__='mylog'
+    id=db.Column(db.Integer,primary_key=True)
+    time=db.Column(db.DateTime)
+    ipaddr=db.Column(db.String(64))
+    ipinfo=db.Column(db.String(64))
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<User %r>'%self.username
 
 
 @login_manager.user_loader

@@ -55,7 +55,7 @@ class ChangePasswordForm(FlaskForm):
     # def validate_old_password(self,field):
     #     '''验证旧密码'''
     #     if current_user.verify_password(field.data) is False:
-    #         raise ValidationError('Old password invalid.')
+    #         raise ValidationError('Password invalid.')
 
 
 class ResetPasswordRequestForm(FlaskForm):
@@ -69,3 +69,13 @@ class ResetPasswordForm(FlaskForm):
                                validators=[DataRequired(),EqualTo('new_password2',message='Passwords must match.')])
     new_password2=PasswordField('Confirm Your New Password',validators=[DataRequired()])
     submit=SubmitField('Reset Password')
+
+
+class ChangeEmailRequestForm(FlaskForm):
+    new_email=StringField('New Email',validators=[DataRequired(),Length(1,64),Email()])
+    password=PasswordField('Password',validators=[DataRequired()])
+    submit=SubmitField('Update Email Address')
+
+    def validate_password(self,field):
+        if not current_user.verify_password(field.data):
+            raise ValidationError('Password invalid!')
