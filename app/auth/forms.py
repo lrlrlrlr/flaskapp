@@ -59,11 +59,13 @@ class ChangePasswordForm(FlaskForm):
 
 
 class ResetPasswordRequestForm(FlaskForm):
+    '''请求重置密码表单'''
     email=StringField('Email',validators=[DataRequired(),Length(1,64),Email()])
     submit=SubmitField('Reset Password')
 
 
 class ResetPasswordForm(FlaskForm):
+    '''重置密码表单'''
     email=StringField('Input Your Email',validators=[DataRequired(),Length(1,64),Email()])
     new_password=PasswordField('Input Your New Password',
                                validators=[DataRequired(),EqualTo('new_password2',message='Passwords must match.')])
@@ -72,10 +74,12 @@ class ResetPasswordForm(FlaskForm):
 
 
 class ChangeEmailRequestForm(FlaskForm):
+    '''请求重设邮箱地址表单'''
     new_email=StringField('New Email',validators=[DataRequired(),Length(1,64),Email()])
     password=PasswordField('Password',validators=[DataRequired()])
     submit=SubmitField('Update Email Address')
 
     def validate_password(self,field):
+        '''验证当前密码'''
         if not current_user.verify_password(field.data):
             raise ValidationError('Password invalid!')
