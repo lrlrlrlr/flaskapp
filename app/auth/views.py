@@ -10,6 +10,16 @@ from .. import db
 from ..email import send_mail
 from ..models import User
 
+from ..decorators import admin_required,permission_required
+from ..models import Permission
+
+
+@auth.route('/admin')
+@login_required
+@admin_required
+def for_admin_only():
+    return 'For administrators!'
+
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
