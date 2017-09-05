@@ -4,7 +4,7 @@ from flask import render_template
 from flask import session,redirect,url_for,flash,request,current_app
 
 from . import main
-from .forms import NameForm
+from .forms import UVweaverForm
 from .. import db
 from ..email import send_mail
 from ..locate_ip_addr import check_ip_location
@@ -24,26 +24,25 @@ def mainpage():
             ipinfo=ipinfo))
 
     # FUNCTION NameForm
-    form=NameForm()
+    form=UVweaverForm()
     # if commit
     if form.validate_on_submit():
-        user=User.query.filter_by(username=form.name.data).first()
-        if user is None:
-            user=User(username=str(form.name.data))
-            db.session.add(user)
-            #sendmail if it's a new username(not in database)!
-            send_mail(current_app.config['FLASKY_ADMIN'],'New User','mail/new_user',
-                      user=user)
-            # FUNCTION flash
-        if form.name.data!=session.get('name'):
-            flash('It seems you have changed your name!')
-            # Session remenber name
-            session['name']=form.name.data
-            form.name.data=''
-
             # redirect to avoid pop_up_window when refresh this page
+            try:
+                short_url_list=form.short_url_raw.data.split(',')
+            except:
+                flash('Invalid short_url!')
+            else:
+                #do something....
+
+                from .UV_Weaver import main_async
+                main_async(short_url_list,form.count.data)
+                flash('已提交任务：短链%s，刷%s个。正在执行...'%(short_url_list,form.count.data))
+                pass
+
+
             return redirect(url_for('.mainpage'),302)
-    return render_template('mainpage.html',form=form,name=session.get('name'),ipaddr=ipaddr,ipinfo=ipinfo,
+    return render_template('mainpage.html',form=form,ipaddr=ipaddr,ipinfo=ipinfo,
                            current_time=datetime.datetime.utcnow())
 
 
@@ -70,3 +69,4 @@ def welcome():
 @login_required
 def secret():
     return 'Only authenticated users are allowed!'
+
