@@ -29,7 +29,7 @@ class UVweaverForm(FlaskForm):
 
 class ShorturlcheckForm(FlaskForm):
     #批量查询短链
-    short_url_list_raw=StringField('短链,多个用逗号分隔',validators=[data_required()])
+    short_url_list_raw = StringField('短链,多个用逗号分隔（如rUvIrmu,EjuU3q6）', validators=[data_required()])
     start_date=StringField('输入开始日期(如20170101)',validators=[data_required()])
     end_date=StringField('输入开始日期(如20170101)',validators=[data_required()])
     submit=SubmitField('Check')
