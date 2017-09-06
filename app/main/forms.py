@@ -25,3 +25,11 @@ class UVweaverForm(FlaskForm):
             pass
         else:
             raise ValidationError('范围1~20000')
+
+
+class ShorturlcheckForm(FlaskForm):
+    #批量查询短链
+    short_url_list_raw=StringField('短链,多个用逗号分隔',validators=[data_required()])
+    start_date=StringField('输入开始日期(如20170101)',validators=[data_required()])
+    end_date=StringField('输入开始日期(如20170101)',validators=[data_required()])
+    submit=SubmitField('Check')

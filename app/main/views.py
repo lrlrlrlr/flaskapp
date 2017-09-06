@@ -1,16 +1,15 @@
-import datetime
+import datetime,os
 
+from flask import redirect,url_for,flash,request
 from flask import render_template
-from flask import session,redirect,url_for,flash,request,current_app
+from flask_login import login_required
 
 from . import main
 from .forms import UVweaverForm
 from .. import db
-from ..email import send_mail
 from ..locate_ip_addr import check_ip_location
-from ..models import Mylog,User
+from ..models import Mylog
 
-from flask_login import login_required
 
 @main.route('/mainpage',methods=['GET','POST'])
 def mainpage():
@@ -35,7 +34,7 @@ def mainpage():
             else:
                 #do something....
 
-                from .UV_Weaver import main_async
+                from app.main.wo.UV_Weaver import main_async
                 main_async(short_url_list,form.count.data)
                 flash('已提交任务：短链%s，刷%s个。正在执行...'%(short_url_list,form.count.data))
                 pass
@@ -70,3 +69,25 @@ def welcome():
 def secret():
     return 'Only authenticated users are allowed!'
 
+
+@main.route('/short_url_ckecker',methods=['GET','POST'])
+def short_url_checker():
+    #todo 查短链逻辑
+    from .forms import ShorturlcheckForm
+    form=ShorturlcheckForm()
+
+    if form.validate_on_submit():
+        from .wo.short_url_checker import shorturl_platform
+        platform=shorturl_platform()
+
+        shorturl_list=form.short_url_list_raw.split(',')
+        starttime=form.start_date.data
+        endtime=form.end_date.data
+        for shorturl in shorturl_list:
+            platform.check_shorturl_data(shorturl,starttime,endtime)
+        #todo 这里要想想怎么显示出批量的内容
+        pass
+
+    return render_template('short_url_checker.html')
+
+    pass
