@@ -10,7 +10,7 @@ from .. import db
 from ..email import send_mail
 from ..models import User
 
-from ..decorators import admin_required,permission_required
+from ..decorators import admin_required, permission_required
 from ..models import Permission
 
 
@@ -47,7 +47,7 @@ def register():
     '''注册界面'''
     form = RegisterForm()
     if form.validate_on_submit():
-        user=User(email=form.email.data,username=form.username.data,password=form.password.data)
+        user = User(email=form.email.data, username=form.username.data, password=form.password.data)
         db.session.add(user)
         db.session.commit()
         token = user.generate_confirmation_token()
@@ -72,12 +72,12 @@ def confirm(token):
 
 @auth.before_app_request
 def before_request():
-    '''如果用户已登录+未确认邮箱地址，则强制要求确认地址'''
-    if current_user.is_authenticated\
-            and not current_user.confirmed\
-            and request.endpoint[:5] != 'auth.'\
-            and request.endpoint != 'static':
-        return redirect(url_for('auth.unconfirmed'))
+    '''如果用户登录，则记录用户最后登录时间；如果用户已登录+未确认邮箱地址，则强制要求确认地址'''
+    if current_user.is_authenticated:
+        current_user.ping()
+        if not current_user.confirmed\
+                and request.endpoint[:5] != 'auth.':
+            return redirect(url_for('auth.unconfirmed'))
 
 
 @auth.route('/unconfirmed')
