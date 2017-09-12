@@ -5,7 +5,7 @@ from flask import render_template,abort
 from flask_login import login_required,current_user
 
 from . import main
-from .forms import UVweaverForm
+from .forms import UVweaverForm,EditProfileForm
 from .. import db
 from ..locate_ip_addr import check_ip_location
 from ..models import Mylog,User
@@ -101,7 +101,26 @@ def text():
 
 @main.route('/user/<username>')
 def user(username):
+    '''显示个人资料'''
     user=User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
     return render_template('user.html',user=current_user)
+
+
+@main.route('/edit-profile',methods=['GET','POST'])
+@login_required
+def edit_profile():
+    '''修改个人资料'''
+    form=EditProfileForm()
+    if form.validate_on_submit():
+        current_user.name=form.real_name.data
+        current_user.location=form.location.data
+        current_user.about_me=form.about_me.data
+        db.session.add(current_user)
+        flash('Your profile has been updated.')
+        return redirect(url_for('main.user',username=current_user.username))
+    form.real_name.data=current_user.name
+    form.location.data=current_user.location
+    form.about_me.data=current_user.about_me
+    return render_template('edit_profile.html',form=form)
