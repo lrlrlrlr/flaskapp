@@ -17,6 +17,8 @@ class shorturl_platform():
         url = "http://w.17wo.cn/shortUrl/login.do"
         self.username = os.environ.get('SHORTURL_PLATFORM_USERNAME')
         self.password = os.environ.get('SHORTURL_PLATFORM_PASSWORD')
+        assert self.username and self.password
+
         headers = {
             'host'                     :"w.17wo.cn",
             'connection'               :"keep-alive",
@@ -72,6 +74,7 @@ class shorturl_platform():
                 headers=headers,
                 cookies=self.cookies,
                 data=data)
+        assert response.status_code==200
         r = response.json()
 
         keys = [
