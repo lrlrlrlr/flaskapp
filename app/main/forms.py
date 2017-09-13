@@ -61,7 +61,7 @@ class EditProfileAdminForm(FlaskForm):
 
     def __init__(self,user,*args,**kwargs):
         super(EditProfileAdminForm,self).__init__(*args,**kwargs)
-        self.role.choice=[(role.id,role.name) for role in Role.query.filter_by(Role.name).all()]
+        self.role.choices=[(role.id,role.name) for role in Role.query.order_by(Role.name).all()]
         self.user=user
 
     def validate_email(self,field):
