@@ -127,7 +127,7 @@ def edit_profile():
     return render_template('edit_profile.html',form=form)
 
 
-@main.route('/edit-profile/<int:id>')
+@main.route('/edit-profile/<int:id>',methods=['GET','POST'])
 @login_required
 @admin_required
 def edit_profile_admin(id):
