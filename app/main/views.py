@@ -105,7 +105,7 @@ def user(username):
     user=User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-    return render_template('user.html',user=current_user)
+    return render_template('user.html',user=user)
 
 
 @main.route('/edit-profile',methods=['GET','POST'])
