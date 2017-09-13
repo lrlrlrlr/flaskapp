@@ -5,8 +5,9 @@ from flask import render_template,abort
 from flask_login import login_required,current_user
 
 from . import main
-from .forms import UVweaverForm,EditProfileForm
+from .forms import UVweaverForm,EditProfileForm,EditProfileAdminForm
 from .. import db
+from ..decorators import admin_required
 from ..locate_ip_addr import check_ip_location
 from ..models import Mylog,User
 
@@ -124,3 +125,31 @@ def edit_profile():
     form.location.data=current_user.location
     form.about_me.data=current_user.about_me
     return render_template('edit_profile.html',form=form)
+
+
+@main.route('/edit-profile/<int:id>')
+@login_required
+@admin_required
+def edit_profile_admin(id):
+    '''管理员修改任意用户资料'''
+    user=User.query.get_or_404(id)
+    form=EditProfileAdminForm(user=user)
+    if form.validate_on_submit():
+        user.email=form.email.data
+        user.username=form.username.data
+        user.confirmed=form.confirmed.data
+        user.role.data=form.role.data
+        user.name=form.name.data
+        user.location=form.location.data
+        user.about_me=form.about_me.data
+        db.session.add(user)
+        flash('The profile has been update.')
+        return redirect(url_for('main.user',username=user.username))
+    form.email.data=user.email
+    form.username.data=user.username
+    form.confirmed.data=user.confirmed
+    form.role.data=user.role_id
+    form.name.data=user.name
+    form.location.data=user.location
+    form.about_me.data=user.about_me
+    return render_template('edit_profile.html',form=form,user=user)#todo 这里好像不用user也行吧
