@@ -152,4 +152,4 @@ def edit_profile_admin(id):
     form.name.data=user.name
     form.location.data=user.location
     form.about_me.data=user.about_me
-    return render_template('edit_profile.html',form=form,user=user)#todo 这里好像不用user也行吧
+    return render_template('edit_profile.html',form=form)
