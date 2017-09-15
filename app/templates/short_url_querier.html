@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+    Short Url Checker
+{% endblock %}
+
+
+{% block page_content %}
+    <hr>
+    <h1>短链批量查询</h1>
+    {{ wtf.quick_form(form) }}
+
+    {% if results %}
+
+        <div>
+            <hr>
+            <h1>result:</h1>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>taskId</th>
+                    <th>taskName</th>
+                    <th>channelName</th>
+                    <th>shortUrl</th>
+                    <th>statisDate</th>
+                    <th>pv</th>
+                    <th>uv</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for result in results %}
+                    <tr>
+                        <td>{{ result.taskId }}</td>
+                        <td>{{ result.taskName }}</td>
+                        <td>{{ result.channelName }}</td>
+                        <td>{{ result.shortUrl }}</td>
+                        <td>{{ result.statisDate }}</td>
+                        <td>{{ result.pv }}</td>
+                        <td>{{ result.uv }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    {% endif %}
+{% endblock %}

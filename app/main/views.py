@@ -35,7 +35,7 @@ def mainpage():
         else:
             #do something....
 
-            from app.main.wo.UV_Weaver import main_async
+            from app.main.wo.uv_weaver import main_async
             main_async(short_url_list,form.count.data)
             flash('已提交任务：短链%s，刷%s个。正在执行...'%(short_url_list,form.count.data))
             pass
@@ -70,24 +70,24 @@ def secret():
     return 'Only authenticated users are allowed!'
 
 
-@main.route('/short_url_checker',methods=['GET','POST'])
-def short_url_checker():
+@main.route('/short_url_querier',methods=['GET','POST'])
+def short_url_querier():
     '''短链批量查询'''
-    from .forms import ShorturlcheckForm
-    form=ShorturlcheckForm()
+    from .forms import ShorturlquerierForm
+    form=ShorturlquerierForm()
 
     if form.validate_on_submit():
-        from .wo.short_url_checker import shorturl_platform
+        from .wo.short_url_querier import shorturl_platform
         shorturl_list=list(form.short_url_list_raw.data.split(','))
         starttime=form.start_date.data
         endtime=form.end_date.data
-
         platform=shorturl_platform(short_url_list=shorturl_list,starttime=starttime,endtime=endtime)
-        result=platform.check()
-        return render_template('short_url_checker.html',form=form,result=result)
-        #todo 学会datatable之后要优化这里的数据展示
-
-    return render_template('short_url_checker.html',form=form)
+        results=platform.check()
+        return render_template('short_url_querier.html',form=form,results=results)
+    #默认日期
+    form.start_date.data=(datetime.date.today()-datetime.timedelta(8)).strftime('%Y%m%d')
+    form.end_date.data=(datetime.date.today()-datetime.timedelta(1)).strftime('%Y%m%d')
+    return render_template('short_url_querier.html',form=form)
 
 
 @main.route('/txt')
