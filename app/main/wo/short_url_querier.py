@@ -76,29 +76,17 @@ class shorturl_platform():
                 data=data)
         assert response.status_code==200
         r = response.json()
+        assert r['message']=='success'
 
-        keys = [
-            'taskId',
-            'taskName',
-            'channelName',
-            'shortUrl',
-            'statisDate',
-            'pv',
-            'uv']
+        return list(r['property']['realTimeVisitStatisList'])
 
-        result = ''
-        for stat in r['property']['realTimeVisitStatisList']:
-            for key in keys:
-                result += str(stat[key]) + '    '
-            result += '<br>'
-        return result
 
     def check(self):
         '''执行查询，返回结果（这个结果是用<br>来换行的，以后可能需要调整)'''
-        result = ''
+        results_list=[]
         for short_url in self.short_url_list:
-            result += str(self.check_shorturl_data(short_url, self.starttime, self.endtime))
-        return result
+            results_list+=self.check_shorturl_data(short_url,self.starttime,self.endtime)
+        return results_list
 
 
 if __name__ == '__main__':
