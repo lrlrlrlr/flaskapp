@@ -28,6 +28,13 @@ class UVweaverForm(FlaskForm):
         else:
             raise ValidationError('范围1~20000')
 
+    def validate_short_url_raw(self,field):
+        '''检查短链的格式:空格,长度'''
+        if ' ' in field.data:
+            raise ValidationError('短链里面有空格,请仔细检查!')
+        for short_url in field.data.split(','):
+            if type(short_url)==str and len(short_url)!=7:
+                raise ValidationError('短链:{}长度不对!长度只能为7!'.format(short_url))
 
 class ShorturlquerierForm(FlaskForm):
     #批量查询短链
