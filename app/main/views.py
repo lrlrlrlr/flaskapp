@@ -1,15 +1,14 @@
 import datetime
-
 from flask import redirect, url_for, flash, request, session
 from flask import render_template, abort
 from flask_login import login_required, current_user
 
 from . import main
-from .forms import UVweaverForm, EditProfileForm, EditProfileAdminForm
+from .forms import UVweaverForm, EditProfileForm, EditProfileAdminForm, PostForm
 from .. import db
 from ..decorators import admin_required
 from ..locate_ip_addr import check_ip_location
-from ..models import Mylog, User
+from ..models import Mylog, User, Post, Permission
 
 
 @main.before_app_first_request
@@ -29,18 +28,14 @@ def mainpage():
     # Get ipaddress and location about this session.
     ipaddr = session.get('ipaddr')
     ipinfo = session.get('ipinfo')
-
-    # FUNCTION NameForm
+    # UVweaver功能逻辑
     form = UVweaverForm()
-    # if commit
     if form.validate_on_submit():
-        # redirect to avoid pop_up_window when refresh this page
         try:
             short_url_list = form.short_url_raw.data.split(',')
         except:
             flash('Invalid short_url!')
         else:
-            # do something....
             from app.main.wo.uv_weaver import main_async
             main_async(short_url_list, form.count.data)
             flash('已提交任务：短链%s，刷%s个。正在执行...' % (short_url_list, form.count.data))
@@ -52,8 +47,14 @@ def mainpage():
 
 
 @main.route('/', methods=['GET', 'POST'])
-def index():  # 首页用来测试新技术
-    return render_template('index.html')
+def index():
+    form = PostForm()
+    if current_user.can(Permission.WRITE_ARTICLES) and form.validate_on_submit():
+        post = Post(body=form.body.data, author=current_user._get_current_object())
+        db.session.add(post)
+        return redirect(url_for('main.index'))
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template('index.html', form=form, posts=posts)
 
 
 @main.route('/testmail/<mailaddr>')
