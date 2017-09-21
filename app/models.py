@@ -1,10 +1,11 @@
+import hashlib
+
+from datetime import datetime
 from flask import current_app
+from flask import request
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
-import hashlib
-from flask import request
 
 from . import db, login_manager
 
@@ -28,14 +29,14 @@ class Role(db.Model):
     @staticmethod
     def insert_roles():
         roles = {
-            'User'         :(Permission.FOLLOW |
-                             Permission.COMMENT |
-                             Permission.WRITE_ARTICLES, True),
-            'Moderator'    :(Permission.FOLLOW |
-                             Permission.COMMENT |
-                             Permission.WRITE_ARTICLES |
-                             Permission.MODERATE_COMMENTS, False),
-            'Administrator':(0xff, False)
+            'User': (Permission.FOLLOW |
+                     Permission.COMMENT |
+                     Permission.WRITE_ARTICLES, True),
+            'Moderator': (Permission.FOLLOW |
+                          Permission.COMMENT |
+                          Permission.WRITE_ARTICLES |
+                          Permission.MODERATE_COMMENTS, False),
+            'Administrator': (0xff, False)
         }
         for r in roles:
             role = Role.query.filter_by(name=r).first()
@@ -51,7 +52,7 @@ class Role(db.Model):
 
 
 class User(UserMixin, db.Model):
-    #todo 下面db.Interger如果改成db.INTERGER还是一样的吗?
+    # todo 下面db.Interger如果改成db.INTERGER还是一样的吗?
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True, index=True)
@@ -64,19 +65,19 @@ class User(UserMixin, db.Model):
     about_me = db.Column(db.Text())
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
-    avatar_hash=db.Column(db.String(32))
+    avatar_hash = db.Column(db.String(32))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
 
     def __init__(self, **kwargs):
         '''9.2: 定义默认的用户角色'''
-        super(User, self).__init__(**kwargs)#todo 这句super什么意思???
+        super(User, self).__init__(**kwargs)  # todo 这句super什么意思???
         if self.role is None:
             if self.email == current_app.config['FLASKY_ADMIN']:
                 self.role = Role.query.filter_by(permissions=0xff).first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
         if self.avatar_hash is None and self.email is not None:
-            self.avatar_hash=hashlib.md5(self.email.encode('utf-8')).hexdigest()
+            self.avatar_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()
 
     @property
     def password(self):
@@ -96,7 +97,7 @@ class User(UserMixin, db.Model):
         '''生成确认token'''
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({
-            'confirm':self.id})
+            'confirm': self.id})
 
     def confirm(self, token):
         '''校验确认token'''
@@ -115,7 +116,7 @@ class User(UserMixin, db.Model):
         '''生成重置密码token'''
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({
-            'reset':self.id})
+            'reset': self.id})
 
     def reset_password(self, token, new_password):
         '''校验重置密码token'''
@@ -134,8 +135,8 @@ class User(UserMixin, db.Model):
         '''生成重置邮箱token'''
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({
-            'change_email':self.id,
-            'new_email'   :new_email})
+            'change_email': self.id,
+            'new_email': new_email})
 
     def change_email(self, token):
         '''校验重置邮箱token'''
@@ -152,13 +153,13 @@ class User(UserMixin, db.Model):
         if self.query.filter_by(email=new_email).first() is not None:
             return False
         self.email = new_email
-        self.avatar_hash=hashlib.md5(self.email.encode('utf-8')).hexdigest()
+        self.avatar_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()
         db.session.add(self)
         return True
 
     def can(self, permissions):
         '''9.3: 角色验证'''
-        return self.role is not None and\
+        return self.role is not None and \
                (self.role.permissions & permissions) == permissions
 
     def is_administrator(self):
@@ -170,15 +171,38 @@ class User(UserMixin, db.Model):
         self.last_seen = datetime.utcnow()
         db.session.add(self)
 
-    def gravatar(self,size=100,default='identicon',rating='g'):
+    def gravatar(self, size=100, default='identicon', rating='g'):
+        '''10.4 用户头像'''
         if request.is_secure:
-            url='https://secure.gravatar.com/avatar'
+            url = 'https://secure.gravatar.com/avatar'
         else:
-            url='http://www.gravatar.com/avatar'
-        hash=self.avatar_hash or hashlib.md5(self.email.encode('utf-8')).hexdigest()
-        return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(url=url,hash=hash,size=size,default=default,
+            url = 'http://www.gravatar.com/avatar'
+        hash = self.avatar_hash or hashlib.md5(self.email.encode('utf-8')).hexdigest()
+        return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(url=url, hash=hash, size=size, default=default,
                                                                      rating=rating)
 
+    @staticmethod
+    def generate_fake(count=100):
+        from random import seed
+        import forgery_py
+        from sqlalchemy.exc import IntegrityError
+
+        seed()
+        for i in range(count):
+            u = User(email=forgery_py.internet.email_address(),
+                     username=forgery_py.internet.user_name(True),
+                     password=forgery_py.lorem_ipsum.word(),
+                     confirmed=True,
+                     name=forgery_py.name.full_name(),
+                     location=forgery_py.address.city(),
+                     about_me=forgery_py.lorem_ipsum.sentence(),
+                     member_since=forgery_py.date.date(True)
+                     )
+            db.session.add(u)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -216,6 +240,20 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow())
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
+    @staticmethod
+    def generate_fake(count=100):
+        from random import seed, randint
+        import forgery_py
+
+        seed()
+        user_count = User.query.count()
+        for i in range(count):
+            u = User.query.offset(randint(0, user_count - 1)).first()
+            p = Post(body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
+                     timestamp=forgery_py.date.date(True),
+                     author=u)
+            db.session.add(p)
+            db.session.commit()
 
 
 @login_manager.user_loader
