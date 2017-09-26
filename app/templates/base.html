@@ -26,7 +26,13 @@
                 </ul>
 
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('main.short_url_querier') }}">短链批量查询</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown"> WO+平台工具 <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ url_for('wo.short_url_querier') }}">短链批量查询</a></li>
+                            <li><a href="{{ url_for('wo.uv_weaver') }}">UV造梦者</a></li>
+                        </ul>
+                    </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     {% if current_user.is_authenticated %}

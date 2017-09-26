@@ -28,21 +28,7 @@ def mainpage():
     # Get ipaddress and location about this session.
     ipaddr = session.get('ipaddr')
     ipinfo = session.get('ipinfo')
-    # UVweaver功能逻辑
-    form = UVweaverForm()
-    if form.validate_on_submit():
-        try:
-            short_url_list = form.short_url_raw.data.split(',')
-        except:
-            flash('Invalid short_url!')
-        else:
-            from app.main.wo.uv_weaver import main_async
-            main_async(short_url_list, form.count.data)
-            flash('已提交任务：短链%s，刷%s个。正在执行...' % (short_url_list, form.count.data))
-            pass
-
-        return redirect(url_for('.mainpage'), 302)
-    return render_template('mainpage.html', form=form, ipaddr=ipaddr, ipinfo=ipinfo,
+    return render_template('mainpage.html', ipaddr=ipaddr, ipinfo=ipinfo,
                            current_time=datetime.datetime.utcnow())
 
 
@@ -73,25 +59,6 @@ def welcome(mailaddr):
 def secret():
     return 'Only authenticated users are allowed!'
 
-
-@main.route('/short_url_querier', methods=['GET', 'POST'])
-def short_url_querier():
-    '''短链批量查询'''
-    from .forms import ShorturlquerierForm
-    form = ShorturlquerierForm()
-
-    if form.validate_on_submit():
-        from .wo.short_url_querier import shorturl_platform
-        shorturl_list = list(form.short_url_list_raw.data.split(','))
-        starttime = form.start_date.data
-        endtime = form.end_date.data
-        platform = shorturl_platform(short_url_list=shorturl_list, starttime=starttime, endtime=endtime)
-        results = platform.check()
-        return render_template('short_url_querier.html', form=form, results=results)
-    # 默认日期
-    form.start_date.data = (datetime.date.today() - datetime.timedelta(8)).strftime('%Y%m%d')
-    form.end_date.data = (datetime.date.today() - datetime.timedelta(1)).strftime('%Y%m%d')
-    return render_template('short_url_querier.html', form=form)
 
 
 @main.route('/txt')

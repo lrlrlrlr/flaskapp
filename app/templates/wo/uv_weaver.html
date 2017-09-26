@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 {% block title %}
-    Index Page
+    UV Weaver
 {% endblock %}
 {% block content %}
     <div class="container">
@@ -11,20 +12,17 @@
             </div>
         {% endfor %}
         {% block page_content %}
-
+            <hr>
+            <h1>UV Weaver 1.0</h1>
+            <p>{{ wtf.quick_form(form) }}</p>
 
             <br>
             <hr>
             <br>
 
-            <p>Your Ip Address is <U>{{ ipaddr }}</U>.</p>
-            <p>Your location is <U>{{ ipinfo }}</U>.</p>
-            <p>Localtime is <u>{{ moment(current_time).format('LLL') }}</u>.</p>
-            <p>That was <u>{{ moment(current_time).fromNow(refresh=True) }}</u></p>
         {% endblock %}
     </div>
 {% endblock %}
 {% block scripts %}
     {{ super() }}
-    {{ moment.include_moment() }}
 {% endblock %}

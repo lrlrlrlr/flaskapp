@@ -36,4 +36,9 @@ def create_app(config_name):
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint,url_prefix='/auth')
 
+    # wo
+    from .wo import wo as wo_blueprint
+    app.register_blueprint(wo_blueprint, url_prefix='/wo')
+
+
     return app
