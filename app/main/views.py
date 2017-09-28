@@ -4,7 +4,7 @@ from flask import render_template, abort
 from flask_login import login_required, current_user
 
 from . import main
-from .forms import UVweaverForm, EditProfileForm, EditProfileAdminForm, PostForm
+from .forms import EditProfileForm, EditProfileAdminForm, PostForm
 from .. import db
 from ..decorators import admin_required
 from ..locate_ip_addr import check_ip_location
@@ -61,7 +61,6 @@ def welcome(mailaddr):
 @login_required
 def secret():
     return 'Only authenticated users are allowed!'
-
 
 
 @main.route('/txt')
@@ -134,3 +133,19 @@ def edit_profile_admin(id):
 def post(id):
     post = Post.query.get_or_404(id)
     return render_template('post.html', posts=[post])
+
+
+@main.route('/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit(id):
+    post = Post.query.get_or_404(id)
+    if current_user != post.author and not current_user.can(Permission.ADMINISTER):
+        abort(403)
+    form = PostForm()
+    if form.validate_on_submit():
+        post.body = form.body.data
+        db.session.add(post)
+        flash('The post has been updated.')
+        return redirect(url_for('post', id - post.id))
+    form.body.data = post.body
+    return render_template('edit_post.html', form=form)
