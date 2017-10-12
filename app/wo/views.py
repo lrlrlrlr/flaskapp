@@ -1,5 +1,5 @@
 import datetime
-from flask import redirect, url_for, flash
+from flask import redirect, url_for, flash, abort, request
 from flask import render_template
 
 from app.wo.short_url_querier import shorturl_platform
@@ -7,7 +7,8 @@ from app.wo.uv_weaver import main_async
 from . import wo
 from .forms import ShorturlquerierForm
 from .forms import UVweaverForm
-
+from ..models import Longurl, UrlCounter
+from .. import db
 
 @wo.route('/short_url_querier', methods=['GET', 'POST'])
 def short_url_querier():
@@ -43,3 +44,20 @@ def uv_weaver():
 
         return redirect(url_for('wo.uv_weaver'), 302)
     return render_template('wo/uv_weaver.html', form=form)
+
+
+@wo.route('/long_url/<id>')
+def url_redirect(id):
+    longurl = Longurl.query.filter_by(id=id).first()
+
+    if longurl:
+        ipaddr = request.remote_addr
+        ua = request.headers.get('User-Agent')
+        db.session.add(UrlCounter(time=datetime.datetime.now(), url=longurl.url, ipaddr=ipaddr, ua=ua))
+        return redirect(longurl.url)
+    else:
+        return abort(404)
+
+
+def add_long_url():
+    pass

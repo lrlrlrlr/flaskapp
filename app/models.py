@@ -1,13 +1,12 @@
 import hashlib
-
 from datetime import datetime
+import bleach
 from flask import current_app
 from flask import request
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from werkzeug.security import generate_password_hash, check_password_hash
 from markdown import markdown
-import bleach
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db, login_manager
 
@@ -238,6 +237,7 @@ class Mylog(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
 class Post(db.Model):
     '''博文,记录时间/用户/内容'''
     __tablename__ = 'Posts'
@@ -271,3 +271,21 @@ class Post(db.Model):
 
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
+
+
+class Longurl(db.Model):
+    '''长链接'''
+    __tablename__ = 'longurl'
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.Text)
+
+
+class UrlCounter(db.Model):
+    '''短链访问统计'''
+    __tablename__ = 'urlcounter'
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.Text, db.ForeignKey('longurl.url'))
+
+    time = db.Column(db.DateTime)
+    ipaddr = db.Column(db.String(64))
+    ua = db.Column(db.Text)
