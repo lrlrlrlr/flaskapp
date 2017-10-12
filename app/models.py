@@ -1,5 +1,6 @@
 import hashlib
 from datetime import datetime
+
 import bleach
 from flask import current_app
 from flask import request
@@ -278,13 +279,14 @@ class Longurl(db.Model):
     __tablename__ = 'longurl'
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.Text)
+    short_url = db.Column(db.String(254))
 
 
 class UrlCounter(db.Model):
     '''短链访问统计'''
     __tablename__ = 'urlcounter'
     id = db.Column(db.Integer, primary_key=True)
-    url = db.Column(db.Text, db.ForeignKey('longurl.url'))
+    url = db.Column(db.String(254), db.ForeignKey('longurl.url'))
 
     time = db.Column(db.DateTime)
     ipaddr = db.Column(db.String(64))

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, IntegerField, ValidationError
-from wtforms.validators import data_required, Length
+from wtforms.validators import data_required, Length, url
 
 
 class UVweaverForm(FlaskForm):
@@ -43,3 +43,9 @@ class ShorturlquerierForm(FlaskForm):
         '''校验日期:结束日期必须在开始日期之后'''
         if int(field.data) < int(self.start_date.data):
             raise ValidationError('结束日期必须在开始日期之后!')
+
+
+class LongurlForm(FlaskForm):
+    # 用户输入长链接,用于生成短链接
+    long_url = StringField('长链接(如http://www.qq.com)', validators=[data_required(), url()])
+    submit = SubmitField('Submit')

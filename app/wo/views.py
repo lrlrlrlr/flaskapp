@@ -1,14 +1,16 @@
 import datetime
+
 from flask import redirect, url_for, flash, abort, request
 from flask import render_template
 
 from app.wo.short_url_querier import shorturl_platform
 from app.wo.uv_weaver import main_async
 from . import wo
-from .forms import ShorturlquerierForm
-from .forms import UVweaverForm
-from ..models import Longurl, UrlCounter
+from .forms import ShorturlquerierForm, UVweaverForm, LongurlForm
+from .sina_short_url import SinaShortUrl
 from .. import db
+from ..models import Longurl, UrlCounter
+
 
 @wo.route('/short_url_querier', methods=['GET', 'POST'])
 def short_url_querier():
@@ -59,5 +61,36 @@ def url_redirect(id):
         return abort(404)
 
 
-def add_long_url():
-    pass
+@wo.route('/short_url_generator', methods=['GET', 'POST'])
+def short_url_generator():
+    form = LongurlForm()
+    if form.validate_on_submit():
+        # 先看看数据库里是否有该url
+        url_exist = Longurl.query.filter_by(url=form.long_url.data).first()
+        if url_exist:
+            # TODO 这里要判断是否生成了短链,如果没生成,则生成
+            flash('该长链已生成短链:{}'.format(url_exist.short_url))
+            redirect(url_for('wo.short_url_generator'))
+        # 如果没有重复数据则开始生成短链
+
+        # 这里要先保存提交,以生成id--链接
+        db.session.add(Longurl(url=form.long_url.data))
+        db.session.commit()
+        id = Longurl.query.filter_by(url=form.long_url.data).first().id
+
+        sina = SinaShortUrl()
+        result = sina.generator('http://xinxidawang.xyz/wo/long_url/{}'.format(id))
+        if result:
+            short_url = result
+
+            # 保存
+            db.session.add(Longurl(url=form.long_url.data, short_url=short_url))
+            db.session.commit()
+
+            flash('成功!短链:{}'.format(short_url))
+        redirect(url_for('wo.short_url_generator'))
+
+    # TODO 这里结果的呈现还没实现
+    results = None
+    # results=Longurl.query.order_by(Longurl.id).all()
+    return render_template('wo/short_url_generator.html', form=form, results=results)

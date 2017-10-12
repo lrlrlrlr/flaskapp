@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 # coding:utf-8
+'''
+新浪短链API
+官方网站:http://dwz.wailian.work/
+
+todo: 频率高了之后会触发滑动验证码.
+'''
 
 from base64 import b64encode
 from json import loads
@@ -25,7 +31,7 @@ TYPES = {
 
 class SinaShortUrl():
     def __init__(self):
-        self.cookies = requests.session().get('http://dwz.wailian.work/').cookies
+        self.cookies = requests.session().get('http://dwz.wailian.work/', timeout=20).cookies
 
     def generator(self, url, suffix=None):
         # 检查url是否输入了http://前缀
@@ -61,16 +67,17 @@ class SinaShortUrl():
             result = loads(response.content)
 
             result_status = result['result']
-            result_data = result['data']
+            result_url = result['data'].get('short_url')
 
-            if not result_status.lower() == 'ok':
-                print('未成功')
-                print(response.content)
-                return False
+            if result_status.lower() == 'ok':
+                return result_url
 
-            return result_data
+        print('未成功')
+        print(response.content)
+        return False
 
 
 if __name__ == '__main__':
     test = SinaShortUrl()
-    print(test.generator('xinxidawang.xyz/wo/long_url/1'))
+    print(test.generator('www.baidu.com'))
+    print(test.generator('http://xinxidawang.xyz/wo/long_url/1'))
