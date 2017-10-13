@@ -11,8 +11,10 @@ from base64 import b64encode
 from json import loads
 from urllib.parse import urlparse
 
+import time
+import hashlib
 import requests
-
+from urllib import parse
 TYPES = {
     "sina.it": "sinalt",
     "t.cn": "sina",
@@ -30,8 +32,8 @@ TYPES = {
 
 
 class SinaShortUrl():
-    def __init__(self):
-        self.cookies = requests.session().get('http://dwz.wailian.work/', timeout=20).cookies
+    # def __init__(self):
+    #     self.cookies = requests.session().get('http://dwz.wailian.work/', timeout=20).cookies
 
     def generator(self, url, suffix=None):
         # 检查url是否输入了http://前缀
@@ -76,8 +78,62 @@ class SinaShortUrl():
         print(response.content)
         return False
 
+    @staticmethod
+    def generator_mynb8(url):
+        '''用于生成短链的第三方API,说明文档http://www.mynb8.com/wiki/sina.html'''
+        APPKEY = '5414cc56366fa5089f0bb0778eca4024'
+        LONG_URL = urlEncode(url)
+        SIGN = md5Encode(APPKEY + md5Encode(LONG_URL))
+
+        request_url = 'http://www.mynb8.com/api/sina?appkey={APPKEY}&sign={SIGN}&long_url={LONG_URL}'.format(
+            APPKEY=APPKEY,
+            LONG_URL=LONG_URL,
+            SIGN=SIGN
+        )
+
+        r = requests.get(request_url, timeout=30)
+        while r.text == "访问太频繁，两次访问最少相隔8秒":
+            time.sleep(15)
+            r = requests.get(request_url, timeout=30)
+
+        if r.status_code == 200:
+            try:
+                result = loads(r.content)
+                return result.get('data').get('short_url')
+            except:
+                return r.text
+
+
+def md5Encode(str):
+    m = hashlib.md5()
+    m.update(str.encode())
+    return m.hexdigest()
+
+
+def urlEncode(str):
+    '''用于转义, 注意下面这个safe,如果不设置的话就不会转义/这个符号'''
+    return parse.quote(str.encode(), safe='')
 
 if __name__ == '__main__':
-    test = SinaShortUrl()
-    print(test.generator('www.baidu.com'))
-    print(test.generator('http://xinxidawang.xyz/wo/long_url/1'))
+    '''这里直接在数据库里写东西'''
+    import pymysql
+
+    connect = pymysql.Connect(
+        host='192.168.0.98',
+        port=3306,
+        user='root',
+        passwd='1123',
+        db='flask-develop',
+        charset="utf8"
+    )
+    cursor = connect.cursor()
+
+    for i in range(54, 100):
+        shorturl = SinaShortUrl.generator_mynb8('http://xinxidawang.xyz/wo/long_url/%s' % i)
+        assert len(shorturl) == 19
+        cursor.execute('INSERT INTO longurl VALUES("{}",{},"{}");'.format(i, "NULL", shorturl))
+        connect.commit()
+        time.sleep(10)
+
+    cursor.close()
+    connect.close()
