@@ -52,7 +52,7 @@ def uv_weaver():
 def url_redirect(id):
     longurl = Longurl.query.filter_by(id=id).first()
 
-    if longurl:
+    if longurl.url:
         ipaddr = request.remote_addr
         ua = request.headers.get('User-Agent')
         db.session.add(UrlCounter(time=datetime.datetime.now(), url=longurl.url, ipaddr=ipaddr, ua=ua))
@@ -68,27 +68,23 @@ def short_url_generator():
         # 先看看数据库里是否有该url
         url_exist = Longurl.query.filter_by(url=form.long_url.data).first()
         if url_exist:
-            # TODO 这里要判断是否生成了短链,如果没生成,则生成
-            flash('该长链已生成短链:{}'.format(url_exist.short_url))
+            flash('已生成短链:{}'.format(url_exist.short_url))
             redirect(url_for('wo.short_url_generator'))
         # 如果没有重复数据则开始生成短链
+        else:
 
-        # 这里要先保存提交,以生成id--链接
-        db.session.add(Longurl(url=form.long_url.data))
-        db.session.commit()
-        id = Longurl.query.filter_by(url=form.long_url.data).first().id
-
-        sina = SinaShortUrl()
-        result = sina.generator('http://xinxidawang.xyz/wo/long_url/{}'.format(id))
-        if result:
-            short_url = result
-
+            # 找到空的位置,填入短链并反馈
+            empty_location = Longurl.query.filter_by(url=None).first()
+            if empty_location is None:
+                flash('库存里没有短链了~快联系管理员!')
+                redirect(url_for('wo.short_url_generator'))
             # 保存
-            db.session.add(Longurl(url=form.long_url.data, short_url=short_url))
+            empty_location.url = form.long_url.data
+            db.session.add(empty_location)
             db.session.commit()
 
-            flash('成功!短链:{}'.format(short_url))
-        redirect(url_for('wo.short_url_generator'))
+            flash('成功!短链:{}'.format(empty_location.short_url))
+            redirect(url_for('wo.short_url_generator'))
 
     # TODO 这里结果的呈现还没实现
     results = None
