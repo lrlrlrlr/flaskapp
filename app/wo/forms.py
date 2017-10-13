@@ -49,3 +49,11 @@ class LongurlForm(FlaskForm):
     # 用户输入长链接,用于生成短链接
     long_url = StringField('长链接(如http://www.qq.com)', validators=[data_required(), url()])
     submit = SubmitField('Submit')
+
+    def validate_long_url(self, field):
+        '''
+        这里涉及到url这个validator的bug:添加长链接的时候,链接末端加入空格无法判断出来。
+        e.g.： 在long_url表单里填写"http://wotvnews.17wo.cn/wovideo/video/first?groupId=1502435723099&resourceId=44  ",后面有空格也不会报错
+        '''
+        if field.data[-1].isspace():
+            raise ValidationError('链接末端不能是空格!')
