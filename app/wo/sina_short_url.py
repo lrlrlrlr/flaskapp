@@ -32,10 +32,12 @@ TYPES = {
 
 
 class SinaShortUrl():
-    # def __init__(self):
-    #     self.cookies = requests.session().get('http://dwz.wailian.work/', timeout=20).cookies
 
     def generator(self, url, suffix=None):
+        '''官方生成短链的API,请求多了之后会出验证码~'''
+        # 检查是否存在cookies,如无,则构造一个.
+        if not self.cookies:
+            self.cookies = requests.session().get('http://dwz.wailian.work/', timeout=20).cookies
         # 检查url是否输入了http://前缀
         scheme = urlparse(url).scheme
         if not scheme:
@@ -114,8 +116,9 @@ def urlEncode(str):
     '''用于转义, 注意下面这个safe,如果不设置的话就不会转义/这个符号'''
     return parse.quote(str.encode(), safe='')
 
-if __name__ == '__main__':
-    '''这里直接在数据库里写东西'''
+
+def temp_apply_some_shorturl_to_database():
+    '''往我的数据库里批量申请短链~~~~~~~~~~~~~~~~'''
     import pymysql
 
     connect = pymysql.Connect(
@@ -137,3 +140,9 @@ if __name__ == '__main__':
 
     cursor.close()
     connect.close()
+
+
+if __name__ == '__main__':
+    # temp_apply_some_shorturl_to_database()
+
+    pass

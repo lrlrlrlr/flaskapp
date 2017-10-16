@@ -32,6 +32,7 @@ def short_url_querier():
 
 @wo.route('/uv_weaver', methods=['GET', 'POST'])
 def uv_weaver():
+    '''刷wo+ UV用'''
     # UVweaver功能逻辑
     form = UVweaverForm()
     if form.validate_on_submit():
@@ -50,6 +51,7 @@ def uv_weaver():
 
 @wo.route('/long_url/<id>')
 def url_redirect(id):
+    '''根据数据库指定网页跳转到站外,并记录requests信息'''
     longurl = Longurl.query.filter_by(id=id).first()
 
     if longurl.url:
@@ -61,8 +63,9 @@ def url_redirect(id):
         return abort(404)
 
 
-@wo.route('/short_url_generator', methods=['GET', 'POST'])
-def short_url_generator():
+@wo.route('/sina_short_url', methods=['GET', 'POST'])
+def sina_short_url():
+    '''新浪短链生成与统计'''
     form = LongurlForm()
     if form.validate_on_submit():
         # 先看看数据库里是否有该url,如果有,则展示短链的uv和pv数据
@@ -77,7 +80,7 @@ def short_url_generator():
             result = UrlCounter.querier(url_isexist)
             results.append(result)
 
-            return render_template('wo/short_url_generator.html', form=form, results=results)
+            return render_template('wo/sina_short_url.html', form=form, results=results)
 
         # 如果没有重复数据则开始生成短链
         else:
@@ -85,7 +88,7 @@ def short_url_generator():
             empty_location = Longurl.query.filter_by(url=None).first()
             if empty_location is None:
                 flash('库存里没有短链了~快联系管理员!')
-                redirect(url_for('wo.short_url_generator'))
+                redirect(url_for('wo.sina_short_url'))
             # 保存
             empty_location.url = form.long_url.data
             db.session.add(empty_location)
@@ -94,4 +97,4 @@ def short_url_generator():
             flash('成功生成短链! 短链地址:  {}'.format(empty_location.short_url))
             redirect(url_for('wo.short_url_generator'))
 
-    return render_template('wo/short_url_generator.html', form=form)
+    return render_template('wo/sina_short_url.html', form=form)

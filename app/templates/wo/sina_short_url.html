@@ -2,28 +2,28 @@
 {% import "bootstrap/wtf.html" as wtf %}
 
 {% block title %}
-    Short Url Checker
+    Sina Short Url Tools
 {% endblock %}
 
 
 {% block page_content %}
     <hr>
-    <h1>短链生成器</h1>
+    <h1>新浪短链生成/查询</h1>
     {{ wtf.quick_form(form) }}
 
     {% if results %}
 
         <div>
             <hr>
-            <h1>result:</h1>
+            <h1>查询结果:</h1>
             <table class="table">
                 <thead>
                 <tr>
-                    <th>id</th>
-                    <th>url</th>
-                    <th>shortUrl</th>
-                    <th>pv</th>
-                    <th>uv</th>
+                    <th>ID</th>
+                    <th>URL</th>
+                    <th>SHORTURL</th>
+                    <th>PV</th>
+                    <th>UV</th>
                 </tr>
                 </thead>
                 <tbody>

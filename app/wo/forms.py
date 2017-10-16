@@ -46,9 +46,9 @@ class ShorturlquerierForm(FlaskForm):
 
 
 class LongurlForm(FlaskForm):
-    # 用户输入长链接,用于生成短链接
-    long_url = StringField('长链接(如http://www.qq.com)', validators=[data_required(), url()])
-    submit = SubmitField('Submit')
+    # 用户输入长链接,用于生成短链接,或者用于查询短链的点击效果
+    long_url = StringField('请输入长链接(如http://www.qq.com)', validators=[data_required(), url()])
+    submit = SubmitField('生成/查询')
 
     def validate_long_url(self, field):
         '''
