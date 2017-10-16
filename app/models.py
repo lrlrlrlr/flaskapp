@@ -278,8 +278,8 @@ class Longurl(db.Model):
     '''长链接'''
     __tablename__ = 'longurl'
     id = db.Column(db.Integer, primary_key=True)
-    url = db.Column(db.Text)
-    short_url = db.Column(db.String(254))
+    url = db.Column(db.String(254))
+    short_url = db.Column(db.String(254), unique=True)
 
 
 class UrlCounter(db.Model):
@@ -291,3 +291,21 @@ class UrlCounter(db.Model):
     time = db.Column(db.DateTime)
     ipaddr = db.Column(db.String(64))
     ua = db.Column(db.Text)
+
+    @staticmethod
+    def querier(target_longurl_model):
+        result = dict()
+        result["id"] = target_longurl_model.id
+        result["url"] = target_longurl_model.url
+        result["short_url"] = target_longurl_model.short_url
+        result["pv"] = UrlCounter.query.filter_by(url=target_longurl_model.url).count()
+        result["uv"] = UrlCounter.uv_querier(target_longurl_model.url)
+        return result
+
+    @staticmethod
+    def uv_querier(target_url):
+        # 这里有关于SELECT DISTINCT的两种写法: 1.直接在sqlalchemy上面执行sql语句; 2.使用session.query+filter+distinct实现;
+        # uv=db.session.execute('SELECT DISTINCT ipaddr FROM urlcounter WHERE url="{}";'.format(url_isexist.url)).rowcount
+        # uv=db.session.query(UrlCounter.ipaddr).filter(UrlCounter.url==target_url).distinct().count()
+        uv = db.session.query(UrlCounter.ipaddr).filter(UrlCounter.url == target_url).distinct().count()
+        return uv

@@ -65,14 +65,22 @@ def url_redirect(id):
 def short_url_generator():
     form = LongurlForm()
     if form.validate_on_submit():
-        # 先看看数据库里是否有该url
-        url_exist = Longurl.query.filter_by(url=form.long_url.data).first()
-        if url_exist:
-            flash('已生成短链:{}'.format(url_exist.short_url))
-            redirect(url_for('wo.short_url_generator'))
+        # 先看看数据库里是否有该url,如果有,则展示短链的uv和pv数据
+        url_isexist = Longurl.query.filter_by(url=form.long_url.data).first()
+        if url_isexist:
+            flash('该长链对应短链:  {} '.format(url_isexist.short_url))
+
+            # 这里以list形式保存,后续如需增加`批量查找`功能修改此段代码即可
+            # results样例:
+            # results = [{"id":1,"url":"https://baidu.com","short_url":"www.baidu.com","pv":1234,"uv":123}]
+            results = list()
+            result = UrlCounter.querier(url_isexist)
+            results.append(result)
+
+            return render_template('wo/short_url_generator.html', form=form, results=results)
+
         # 如果没有重复数据则开始生成短链
         else:
-
             # 找到空的位置,填入短链并反馈
             empty_location = Longurl.query.filter_by(url=None).first()
             if empty_location is None:
@@ -83,10 +91,7 @@ def short_url_generator():
             db.session.add(empty_location)
             db.session.commit()
 
-            flash('成功!短链:{}'.format(empty_location.short_url))
+            flash('成功生成短链! 短链地址:  {}'.format(empty_location.short_url))
             redirect(url_for('wo.short_url_generator'))
 
-    # TODO 这里结果的呈现还没实现
-    results = None
-    # results=Longurl.query.order_by(Longurl.id).all()
-    return render_template('wo/short_url_generator.html', form=form, results=results)
+    return render_template('wo/short_url_generator.html', form=form)
