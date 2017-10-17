@@ -95,6 +95,6 @@ def sina_short_url():
             db.session.commit()
 
             flash('成功生成短链! 短链地址:  {}'.format(empty_location.short_url))
-            redirect(url_for('wo.short_url_generator'))
+            redirect(url_for('wo.sina_short_url'))
 
     return render_template('wo/sina_short_url.html', form=form)
