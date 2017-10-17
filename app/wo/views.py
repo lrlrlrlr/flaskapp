@@ -73,12 +73,8 @@ def sina_short_url():
         if url_isexist:
             flash('该长链对应短链:  {} '.format(url_isexist.short_url))
 
-            # 这里以list形式保存,后续如需增加`批量查找`功能修改此段代码即可
-            # results样例:
-            # results = [{"id":1,"url":"https://baidu.com","short_url":"www.baidu.com","pv":1234,"uv":123}]
-            results = list()
-            result = UrlCounter.querier(url_isexist)
-            results.append(result)
+            # 这里以list形式保存每天的uv和pv
+            results = UrlCounter.querier(url_isexist)
 
             return render_template('wo/sina_short_url.html', form=form, results=results)
 

@@ -1,7 +1,7 @@
 import hashlib
-from datetime import datetime
 
 import bleach
+from datetime import datetime, timedelta
 from flask import current_app
 from flask import request
 from flask_login import UserMixin, AnonymousUserMixin
@@ -294,18 +294,80 @@ class UrlCounter(db.Model):
 
     @staticmethod
     def querier(target_longurl_model):
-        result = dict()
-        result["id"] = target_longurl_model.id
-        result["url"] = target_longurl_model.url
-        result["short_url"] = target_longurl_model.short_url
-        result["pv"] = UrlCounter.query.filter_by(url=target_longurl_model.url).count()
-        result["uv"] = UrlCounter.uv_querier(target_longurl_model.url)
-        return result
+        '''传入一个Longurl.model,就可以查询它的uv和pv了, 返回的格式:[{day1},{day2},{day3}]'''
+
+        results = list()
+
+        # 查询该url最早有访问记录的时间
+        url_first_request_time = \
+            db.session.query(db.func.min(UrlCounter.time)).filter(UrlCounter.url == target_longurl_model.url).first()[0]
+        # 如果该url有访问记录,则开始查询具体uv与pv
+        if url_first_request_time:
+            # 确定查询开始与结束日期
+            start_date = url_first_request_time.date()
+            end_date = datetime.today().date()
+
+            # 生成器:生成指定日期区间列表
+            def datelist(start_date, end_date):
+                current_date = start_date
+                while end_date > current_date:
+                    yield current_date
+                    current_date = current_date + timedelta(1)
+
+            # 遍历每天的pv和uv,并加入列表
+            for current_query_date in datelist(start_date, end_date):
+                result = dict()
+                result['date'] = current_query_date
+                result['url'] = target_longurl_model.url
+                result['short_url'] = target_longurl_model.short_url
+                result['pv'] = UrlCounter.pv_querier(target_longurl_model.url, start_date=current_query_date,
+                                                     end_date=current_query_date + timedelta(1))
+                result['uv'] = UrlCounter.uv_querier(target_longurl_model.url, start_date=current_query_date,
+                                                     end_date=current_query_date + timedelta(1))
+                results.append(result)
+
+            return results
 
     @staticmethod
-    def uv_querier(target_url):
-        # 这里有关于SELECT DISTINCT的两种写法: 1.直接在sqlalchemy上面执行sql语句; 2.使用session.query+filter+distinct实现;
-        # uv=db.session.execute('SELECT DISTINCT ipaddr FROM urlcounter WHERE url="{}";'.format(url_isexist.url)).rowcount
-        # uv=db.session.query(UrlCounter.ipaddr).filter(UrlCounter.url==target_url).distinct().count()
-        uv = db.session.query(UrlCounter.ipaddr).filter(UrlCounter.url == target_url).distinct().count()
+    def pv_querier(target_url, start_date=None, end_date=None):
+        '''查询指定链接在指定日期的pv量, 日期格式:(str or datetime.date) 2017-01-01 '''
+
+        # 没开始时间,没结束时间:直接查全部uv
+        if not start_date and not end_date:
+            pv = UrlCounter.query.filter_by(url=target_url).count()
+            return pv
+
+        # 有开始时间,没结束时间:结束时间等于现在(到今天24:00)
+        if start_date and not end_date:
+            end_date = (datetime.today() + timedelta(1)).strftime('%Y-%m-%d')
+
+        # 没开始时间,有结束时间:开始时间等于最早
+        if not start_date and end_date:
+            start_date = db.session.query(db.func.min(UrlCounter.time)).filter(UrlCounter.url == target_url).first()[
+                0].strftime('%Y-%m-%d')
+
+        pv = UrlCounter.query.filter_by(url=target_url).filter(UrlCounter.time.between(start_date, end_date)).count()
+        return pv
+
+    @staticmethod
+    def uv_querier(target_url, start_date=None, end_date=None):
+        '''查询指定链接在指定日期的pv量, 日期格式:(str or datetime.date) 2017-01-01 '''
+
+        # 没开始时间,没结束时间:直接查全部uv
+        if not start_date and not end_date:
+            uv = db.session.query(UrlCounter.ipaddr).filter(UrlCounter.url == target_url).distinct().count()
+            return uv
+
+        # 有开始时间,没结束时间:结束时间等于现在(到今天24:00)
+        if start_date and not end_date:
+            end_date = (datetime.today() + timedelta(1)).strftime('%Y-%m-%d')
+
+        # 没开始时间,有结束时间:开始时间等于最早
+        if not start_date and end_date:
+            start_date = db.session.query(db.func.min(UrlCounter.time)).filter(UrlCounter.url == target_url).first()[
+                0].strftime('%Y-%m-%d')
+
+        uv = db.session.query(UrlCounter.ipaddr).filter(UrlCounter.url == target_url,
+                                                        UrlCounter.time.between(start_date,
+                                                                                end_date)).distinct().count()
         return uv
