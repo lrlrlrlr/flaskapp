@@ -23,7 +23,7 @@ idna==2.5
 itsdangerous==0.24
 Jinja2==2.9.5
 lxml==3.8.0
-Mako==1.0.7
+Mako==1.2.2
 Markdown==2.6.9
 MarkupSafe==0.23
 pycodestyle==2.3.1
